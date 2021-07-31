@@ -1,0 +1,2 @@
+# diffcross
+Differentiable cross-approximation

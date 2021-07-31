@@ -1,0 +1,9 @@
+numpy
+cython
+torch
+maxvolpy
+numba
+click
+tntorch
+nibabel
+pydicom
