@@ -60,7 +60,7 @@ def build_no_enc_acc2d(
 
 
 def build_acc3d_multidim(
-        im: Union[torch.Tensor, Mesh3],
+        im: Union[torch.Tensor],
         enc: torch.nn.Module,
         q_shape: Iterable,
         full_shape: Iterable,

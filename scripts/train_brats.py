@@ -1,7 +1,6 @@
 import sys
 import torch
 import click
-import tntorch as tn
 import pytorch_lightning as pl
 import numpy as np
 from typing import Optional
@@ -57,17 +56,18 @@ def main(
     from utils.helpers_3d import get_3dtensors_patches
     from models.lightning import TTRegressor
 
+    res = [256, 256, 256]
     if not use_encoder:
         build_enc_f = build_no_enc_acc3d
-        new_shape = (256, 256, 256)
+        new_shape = res
     else:
         if ndims in [None, 1]:
             ndims = 1
             build_enc_f = build_enc_acc3d
-            new_shape = (256, 256, 256)
+            new_shape = res
         else:
             build_enc_f = build_acc3d_multidim
-            new_shape = (256, 256, 256, ndims)
+            new_shape = res + [ndims]
 
     print('ndims encoder = {}'.format(ndims))
 

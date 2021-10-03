@@ -126,7 +126,7 @@ class TwoHeadsRegressorNoBN(nn.Module):
             num_input_features1: int,
             num_input_features2: int,
             num_out_features: int):
-        super(TwoHeadsRegressor, self).__init__()
+        super(TwoHeadsRegressorNoBN, self).__init__()
         self.num_input_features1 = num_input_features1
         print('Number of input features: {}'.format(self.num_input_features1))
 

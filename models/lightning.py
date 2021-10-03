@@ -194,6 +194,7 @@ class TTQuantileRegressor(pl.LightningModule):
             self,
             resolution: Iterable[int],
             build_encoder_function: Callable,
+            use_encoder: bool,
             path_function: Callable,
             q_shape: Iterable[int],
             ndims: int,
@@ -202,24 +203,35 @@ class TTQuantileRegressor(pl.LightningModule):
             use_extra_features: bool,
             quantiles: Iterable[float]):
         super().__init__()
-        build_enc_f = partial(
-            build_encoder_function,
-            arg_patch_func=add_dim,
-            patch_func=path_function)
+        if use_encoder:
+            build_enc_f = partial(
+                build_encoder_function,
+                arg_patch_func=add_dim,
+                patch_func=path_function)
+        else:
+            build_enc_f=build_encoder_function
+
         self.qtts = []
         self.rank = rank
         self.q_shape = q_shape
         self.resolution = resolution
         self.quantiles = quantiles
         self.automatic_optimization = False
-        self.enc = EncoderCA_3D(num_out_channels=ndims)
-        self.encoder = partial(
-            build_enc_f,
-            enc=self.enc,
-            q_shape=q_shape,
-            full_shape=full_shape,
-            detach=False,
-            batch_size=10000)
+        self.use_encoder = use_encoder
+        if use_encoder:
+            self.enc = EncoderCA_3D(num_out_channels=ndims)
+            self.encoder = partial(
+                build_enc_f,
+                enc=self.enc,
+                q_shape=q_shape,
+                full_shape=full_shape,
+                detach=False,
+                batch_size=10000)
+        else:
+            self.encoder = partial(
+                build_enc_f,
+                q_shape=q_shape,
+                full_shape=full_shape)
         if use_extra_features:
             self.regressor = TwoHeadsRegressorNoBN(8, rank + 100, 3).cuda()
         else:
@@ -276,7 +288,9 @@ class TTQuantileRegressor(pl.LightningModule):
 
         opt = self.optimizers()
 
-        old_weights = [self.enc.state_dict(), self.regressor.state_dict()]
+        old_weights = [self.regressor.state_dict()]
+        if self.use_encoder:
+            old_weights = [self.enc.state_dict()] + old_weights
         try:
             self.manual_backward(loss, opt)
             opt.step()
@@ -363,8 +377,9 @@ class TTRegressor(pl.LightningModule):
         self.rank = rank
         self.q_shape = q_shape
         self.automatic_optimization = False
-        self.enc = EncoderCA_3D(num_out_channels=ndims)
+        self.use_encoder = use_encoder
         if use_encoder:
+            self.enc = EncoderCA_3D(num_out_channels=ndims)
             self.encoder = partial(
                 build_enc_f,
                 enc=self.enc,
@@ -422,6 +437,8 @@ class TTRegressor(pl.LightningModule):
             _, stack = get_train_features(
                 merge_cores_to_batch(self.qtts + [rec]), self.rank)
         except:
+            import traceback
+            traceback.print_exc()
             print('failed stack')
             return
 
@@ -438,7 +455,9 @@ class TTRegressor(pl.LightningModule):
 
         opt = self.optimizers()
 
-        self.old_weights = [self.enc.state_dict(), self.regressor.state_dict(), self.optimizers().state_dict()]
+        self.old_weights = [self.regressor.state_dict(), self.optimizers().state_dict()]
+        if self.use_encoder:
+            self.old_weights = [self.enc.state_dict()] + self.old_weights
         try:
             self.manual_backward(loss, opt)
             opt.step()

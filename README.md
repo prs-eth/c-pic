@@ -1,8 +1,5 @@
-# Tapoc
-This is the repository with code for TAPOC experiments
+# Cherry-Picking Gradients: Learning Low-Rank Embeddings of Visual Data via Differentiable Cross-Approximation (ICCV2021)
+
+This is the repository with code for C-PIC experiments
 
 Install deps: `pip install -r requirements.txt`  
-
-Download dependencies: `git submodule update --init --recursive`
-
-Paper with edit access: https://www.overleaf.com/2448265389wjddphhjkvcv

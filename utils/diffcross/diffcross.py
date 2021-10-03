@@ -4,9 +4,9 @@ import numpy as np
 import cvxpy as cp
 
 
-# The derivative of lstsq() is not implemented as of PyTorch 1.8.0,
+# The derivative of lstsq() is not implemented as of PyTorch 1.9.0,
 # so we use cvxpylayer solver
-def lstsq(b, A, method='qr', lam=1e-3, eps=1e-3):
+def lstsq(b, A, method='qr', lam=1e-6, eps=1e-3):
     if method == 'qr':
         Q, R = torch.linalg.qr(A.T)
         X = b.T @ torch.linalg.pinv(R) @ Q.T
